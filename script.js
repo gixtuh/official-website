@@ -10,5 +10,5 @@ function hoverAudio() {
     hover.play()
 }
 document.querySelectorAll('button').forEach(button => {
-    button.addEventListener('mouseover', playHoverSound);
+    button.addEventListener('mouseover', hoverAudio);
 });
