@@ -43,3 +43,10 @@ button:hover {
     color: black;
     padding-bottom: 10px
 }
+
+a {
+    transition: transform 0.2s ease;
+}
+a:hover {
+    transform: scale(-1.2);
+}
