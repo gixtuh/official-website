@@ -11,4 +11,4 @@ function hoverAudio() {
 }
 document.querySelectorAll('button').forEach(button => {
     button.addEventListener('mouseover', hoverAudio);
-});
+}, { once: true });
