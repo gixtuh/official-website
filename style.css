@@ -6,32 +6,35 @@ body {
     background-repeat: no-repeat;
     background-color: green;
 }
+
 .title {
     background-color: aqua;
     border-radius: 10px;
     margin: 0 auto;
     text-align: center;
     font-size: 50px;
-    margin-bottom: 10px;
 }
+
 .stuff {
     background-color: purple;
     border-radius: 10px;
     margin: 0 auto;
     text-align: center;
     color: white;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
 }
+
 button {
     background-color: chocolate;
     color: white;
     font-size: 30px
 }
+
 .dnwiwo {
     background-color: orange;
     border-radius: 10px;
     margin: 0 auto;
     text-align: center;
     color: black;
-    margin-bottom: 10px;
+    padding-bottom: 10px
 }
