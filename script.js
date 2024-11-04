@@ -9,3 +9,6 @@ function hoverAudio() {
     hover.currentTime = 0;
     hover.play()
 }
+document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('mouseover', playHoverSound);
+});
