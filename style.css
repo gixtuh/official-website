@@ -28,6 +28,7 @@ button {
     background-color: chocolate;
     color: white;
     font-size: 30px
+    transition: transform 0.2s ease
 }
 button:hover {
     cursor: pointer;
