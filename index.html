@@ -1,6 +1,12 @@
 <link rel="stylesheet", href="style.css">
 <audio id="click" src="click.wav"></audio>
-<script src="script.js"></script>
+<script>
+    function clickAudio() {
+        const click = document.getElementById("click")
+        click.currentTime = 0
+        click.Play()
+}
+</script>
 <article class="title">
     <h1>gixtuh's official website</h1>
     home
@@ -12,7 +18,7 @@
 <article class="stuff">
     <h2>the cool things i do</h2>
     <br/>
-    <button onclick="clickAudio; window.location.href='https://scratch.mit.edu/users/Policerdarm111'">scratch</button>
+    <button onclick="clickAudio(); window.location.href='https://scratch.mit.edu/users/Policerdarm111'">scratch</button>
 </article>
 <br/>
 <article class="dnwiwo">
