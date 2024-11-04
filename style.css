@@ -29,6 +29,10 @@ button {
     color: white;
     font-size: 30px
 }
+button:hover {
+    cursor: pointer;
+    transform: scale();
+}
 
 .dnwiwo {
     background-color: orange;
