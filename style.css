@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-image: url(/background.jpg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: green;
+}
+
+.title {
+    background-color: aqua;
+    border-radius: 10px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 50px;
+}
+
+.stuff {
+    background-color: purple;
+    border-radius: 10px;
+    margin: 0 auto;
+    text-align: center;
+    color: white;
+    padding-bottom: 10px;
+}
+
+button {
+    background-color: chocolate;
+    color: white;
+    font-size: 30px;
+    transition: transform 0.2s ease;
+}
+button:hover {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.dnwiwo {
+    background-color: orange;
+    border-radius: 10px;
+    margin: 0 auto;
+    text-align: center;
+    color: black;
+    padding-bottom: 10px
+}
+
+a {
+    transition: transform 0.2s ease;
+}
+a:hover {
+    transform: scale(-1.2);
+}
