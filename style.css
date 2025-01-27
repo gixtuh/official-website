@@ -7,6 +7,10 @@ body {
     background-color: green;
 }
 
+a {
+    color: black;
+}
+
 .title {
     background-color: aqua;
     border-radius: 10px;
