@@ -33,8 +33,7 @@ button {
     color: white;
     font-size: 18px;
     padding: 10px 20px;
-    width: 100px;
-    height: 40px;
+    width: 150px;
     transition: transform 0.2s ease;
 }
 button:hover {
