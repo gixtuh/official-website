@@ -31,7 +31,10 @@ a {
 button {
     background-color: chocolate;
     color: white;
-    font-size: 30px;
+    font-size: 18px;
+    width: 100px;
+    height: 50px;
+    padding: 100px 50px;
     transition: transform 0.2s ease;
 }
 button:hover {
