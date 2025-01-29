@@ -32,9 +32,10 @@ button {
     background-color: chocolate;
     color: white;
     font-size: 18px;
-    padding: 10px 20px;
+    padding: 10px 10px;
     width: 150px;
-    height: 30px;
+    height: 26px;
+    line-height: 0.2;
     transition: transform 0.2s ease;
 }
 button:hover {
