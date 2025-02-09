@@ -4,6 +4,8 @@
 <br />
 <input id="message" placeholder="Message">
 <button onclick="send()">Send</button><button onclick="username()">Edit username</button><button onclick="changeroom()">Edit room</button>
+<br />
+<button onclick="resetusername()">Reset username</button>
 
 <script>
     const url = "wss://wschatserver.glitch.me/"
@@ -50,20 +52,28 @@
         }
     }
     function username() {
-        if (confirm('Are you sure you want to edit your username?\nThe website will reload to keep the client stable.') === true) {
+        if (confirm('Are you sure you want to edit your username?\nThe website will reload to keep the client stable.')) {
             var user = prompt('Username: ')
-            ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')} switched username to ${user}"}`)
-            localStorage.setItem('username', user)
-            setTimeout(function() {
-                window.location.href = window.location.href
-            }, 1000)
+            if (user !== "") {
+                ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')} switched username to ${user}"}`)
+                localStorage.setItem('username', user.replace(" ", "_"))
+                setTimeout(function() {
+                    window.location.href = window.location.href
+                }, 1000)
+            }
         }
     }
     function changeroom() {
-        if (confirm('Are you sure you want to edit the room?') === true) {
+        if (confirm('Are you sure you want to edit the room?')) {
             var user = prompt('Room: ')
             localStorage.setItem('room', user)
             document.getElementById('chatbox').value = ""
+        }
+    }
+    function resetusername() {
+        if (confirm('Do you really want to reset your username to default?')) {
+            localStorage.setItem('username', `guest${Math.round(Math.random() * 999999)}`)
+            window.location.href = window.location.href
         }
     }
 
