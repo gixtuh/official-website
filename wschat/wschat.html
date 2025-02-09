@@ -1,0 +1,80 @@
+<h1 style="text-align: center;">WSChat</h1>
+<hr />
+<textarea style="width: 480; height: 360" id="chatbox" placeholder='Trying to connect...' disabled></textarea>
+<br />
+<input id="message" placeholder="Message">
+<button onclick="send()">Send</button><button onclick="username()">Edit username</button><button onclick="changeroom()">Edit room</button>
+
+<script>
+    const url = "wss://wschatserver.glitch.me/"
+    const ws = new WebSocket(url, localStorage.getItem('username'))
+    localStorage.setItem('room', '')
+    ws.onopen = function() {
+        document.getElementById('chatbox').placeholder = "Empty"
+        document.getElementById('chatbox').value = ""
+        
+    }
+    ws.onerror = function() {
+        document.getElementById('chatbox').placeholder = "Error occurred."
+        document.getElementById('chatbox').value = ""
+    }
+    ws.onclose = function(error) {
+        if (error.code === 1006) {
+            document.getElementById('chatbox').placeholder = "Server is offline"
+        } else {
+            document.getElementById('chatbox').placeholder = error.reason
+        }
+        document.getElementById('chatbox').value = ""
+    }
+    ws.onmessage = function(message) {
+        const chatbox = document.getElementById('chatbox')
+        var parsed = JSON.parse(message.data)
+        console.log(message.data)
+        if (parsed.room === localStorage.getItem('room')) {
+            if (chatbox.value) {
+                chatbox.value += '\n' + parsed.message
+            } else {
+                chatbox.value += parsed.message
+            }
+            messageAudio.pause()
+            messageAudio.currentTime = 0;
+            messageAudio.play()
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+    
+    }
+    function send() {
+        if (document.getElementById('message').value !== "") {
+            ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')}: ${document.getElementById('message').value}"}`)
+            document.getElementById("message").value = ""
+        }
+    }
+    function username() {
+        if (confirm('Are you sure you want to edit your username?\nThe website will reload to keep the client stable.') === true) {
+            var user = prompt('Username: ')
+            ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')} switched username to ${user}"}`)
+            localStorage.setItem('username', user)
+            setTimeout(function() {
+                window.location.href = window.location.href
+            }, 1000)
+        }
+    }
+    function changeroom() {
+        if (confirm('Are you sure you want to edit the room?') === true) {
+            var user = prompt('Room: ')
+            localStorage.setItem('room', user)
+            document.getElementById('chatbox').value = ""
+        }
+    }
+
+    const messageAudio = document.createElement('audio')
+    messageAudio.src = "message.wav"
+    document.body.appendChild(messageAudio)
+
+    document.getElementById('message').addEventListener('keydown', function(event) {
+        if (event.key === "Enter") {
+            send()
+        }
+    })
+</script>
