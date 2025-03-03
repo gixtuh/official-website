@@ -72,7 +72,7 @@
         }
     }
     function resetusername() {
-        if (confirm('Do you really want to reset your username to default?')) {
+        if (confirm('Do you really want to reset your username to default?\nThis is normally used for debugging in case of accidental subprotocol errors.')) {
             localStorage.setItem('username', `guest${Math.round(Math.random() * 999999)}`)
             window.location.href = window.location.href
         }
