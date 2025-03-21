@@ -68,8 +68,9 @@
         if (confirm('Are you sure you want to edit the room?')) {
             var user = prompt('Room: ')
             localStorage.setItem('room', user)
-            document.getElementById('chatbox').value += '\n' + localStorage.getItem("room")
+            document.getElementById('chatbox').value += '\n' + '\n' + localStorage.getItem("room")
             document.getElementById('chatbox').value += '\n' + '------------------------'
+            document.getElementById('chatbox').scrollTop = document.getElementById('chatbot').scrollHeight
         }
     }
     function resetusername() {
