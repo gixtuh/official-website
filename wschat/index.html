@@ -48,7 +48,11 @@
     }
     function send() {
         if (document.getElementById('message').value !== "") {
-            ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')}: ${document.getElementById('message').value}"}`)
+            if (document.getElementById('message').value === "$>>clear")
+                document.getElementById("chatbox").value = ""
+            } else {
+                ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')}: ${document.getElementById('message').value}"}`)
+            }
             document.getElementById("message").value = ""
         }
     }
