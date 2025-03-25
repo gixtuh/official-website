@@ -9,7 +9,7 @@
 <button onclick="resetusername()">Reset username</button>
 
 <script>
-    const url = "wss://wschatserver.glitch.me/"
+    const url = "wss://wschat-server.glitch.me/"
     const ws = new WebSocket(url, localStorage.getItem('username'))
     localStorage.setItem('room', '')
     ws.onopen = function() {
