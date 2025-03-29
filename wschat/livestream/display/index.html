@@ -25,11 +25,13 @@
     const livestreamnum = prompt("Enter live stream ID")
     navigator.mediaDevices.getDisplayMedia({video: true})
         .then(d => {
-            let streaming = 1
+            console.log(`STREAM: got stream data for room LIVESTREAM${livestreamnum}`)
+            const streaming = 1
             const Track = d.getTracks()[0];
             Track.onended = () => {
+                console.warn("STREAM: stream stopped")
                 alert("Stream ended!\nReceiving data only.")
-                streaming = 0
+                const streaming = 0
                 document.getElementById("qualityinput").style = "display: none;";
                 document.getElementById("receivemodecheckbox").style = "display: none;"
                 document.getElementById("text1").style = "display: none;"
@@ -56,15 +58,18 @@
                 ws.send(`{"room":"LIVESTREAM${livestreamnum}","message":"${du}"}`)
             }
             ws.onopen = () => {
+                console.log("WEBSOCKET: connected to websocket")
                 setInterval(() => {
                     if (!document.getElementById("receivemodecheckbox").checked && streaming === 1) {
                         send()
                     }
                 }, 100)
             }
+            console.log("STREAM: set up datas")
 
         })
     .catch(e => {
+        console.error(`STREAM: stream error: ${e}`)
         alert(`Error: ${e}\nYou will be receiving data instead of sending it.`)
         document.getElementById("qualityinput").style = "display: none;";
         document.getElementById("receivemodecheckbox").style = "display: none;"
@@ -78,6 +83,7 @@
             }
         }
         ws.onclose = () => {
+            console.error("WEBSOCKET: disconnected")
             alert("Disconnected from websocket server")
             window.location.href = window.location.href
         }
