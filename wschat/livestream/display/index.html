@@ -15,21 +15,22 @@
 <video id="vid"></video>
 <img id="img" width="480" height="360" />
 <canvas id="canv"></canvas>
+<br />
+<input type="checkbox" id="receivemodecheckbox" checked><a id="text1">Stop sending data and receive only</a>
+<br />
+<input placeholder="Quality" id="qualityinput">
 
 <script>
     
     const livestreamnum = prompt("Enter live stream number")
-    alert("Share screen to start recording.")
     navigator.mediaDevices.getDisplayMedia({video: true})
         .then(d => {
-            const quality = parseFloat(prompt("Quality: ")) || 0.1;
             const ws = new WebSocket("wss://wschat-server.glitch.me")
             ws.onmessage = e => {
                 const parsed = JSON.parse(e.data);
                 if (parsed.room === `LIVESTREAM${livestreamnum}`) {
                     const img = document.getElementById("img")
                     img.src = parsed.message
-                    console.log("hi")
                 }
             }
 
@@ -38,6 +39,7 @@
 
             const ctx = canv.getContext("2d")
             function send() {
+                const quality = parseFloat(document.getElementById("qualityinput").value) || 0.1;
                 canv.width = vid.videoWidth;
                 canv.height = vid.videoHeight;
                 ctx.drawImage(vid, 0, 0, canv.width, canv.height);
@@ -45,19 +47,25 @@
                 ws.send(`{"room":"LIVESTREAM${livestreamnum}","message":"${du}"}`)
             }
             ws.onopen = () => {
-                setInterval(send, 100)
+                setInterval(() => {
+                    if (!document.getElementById("receivemodecheckbox").checked) {
+                        send()
+                    }
+                }, 100)
             }
 
         })
     .catch(e => {
         alert(`Error: ${e}\nYou will be receiving data instead of sending it.`)
+        document.getElementById("qualityinput").style = "display: none;";
+        document.getElementById("receivemodecheckbox").style = "display: none;"
+        document.getElementById("text1").style = "display: none;"
         const ws = new WebSocket("wss://wschat-server.glitch.me")
         ws.onmessage = e => {
             const parsed = JSON.parse(e.data);
             if (parsed.room === `LIVESTREAM${livestreamnum}`) {
                 const img = document.getElementById("img")
                 img.src = parsed.message
-                console.log("hi")
             }
         }
         ws.onclose = () => {
