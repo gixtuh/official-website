@@ -37,7 +37,7 @@
                 document.getElementById("receivemodecheckbox").style = "display: none;"
                 document.getElementById("text1").style = "display: none;"
             }
-            const ws = new WebSocket("wss://wschat-server.glitch.me")
+            const ws = new WebSocket("wss://wschat-server.glitch.me", `livestream${Math.round(Math.random() * 999999)}`)
             ws.onmessage = e => {
                 const parsed = JSON.parse(e.data);
                 if (parsed.room === `LIVESTREAM${livestreamnum}`) {
@@ -85,7 +85,7 @@
         document.getElementById("qualityinput").style = "display: none;";
         document.getElementById("receivemodecheckbox").style = "display: none;"
         document.getElementById("text1").style = "display: none;"
-        const ws = new WebSocket("wss://wschat-server.glitch.me")
+        const ws = new WebSocket("wss://wschat-server.glitch.me", `livestreamwatch${Math.round(Math.random() * 999999)}`)
         ws.onmessage = e => {
             const parsed = JSON.parse(e.data);
             if (parsed.room === `LIVESTREAM${livestreamnum}`) {
@@ -102,6 +102,9 @@
             document.getElementById("text1").style = ""
             document.getElementById("text1").innerText = `${d.reason}\n\n${d.code}`
         }
+        ws.onopen = () => {
+                console.log("WEBSOCKET: connected to websocket")
+            }
 
     })
 </script>
