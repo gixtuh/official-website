@@ -22,16 +22,17 @@
 
 <script>
     
+    console.log("hi")
     const livestreamnum = prompt("Enter live stream ID")
     navigator.mediaDevices.getDisplayMedia({video: true})
         .then(d => {
             console.log(`STREAM: got stream data for room LIVESTREAM${livestreamnum}`)
-            const streaming = 1
+            let streaming = 1
             const Track = d.getTracks()[0];
             Track.onended = () => {
                 console.warn("STREAM: stream stopped")
                 alert("Stream ended!\nReceiving data only.")
-                const streaming = 0
+                streaming = 0
                 document.getElementById("qualityinput").style = "display: none;";
                 document.getElementById("receivemodecheckbox").style = "display: none;"
                 document.getElementById("text1").style = "display: none;"
