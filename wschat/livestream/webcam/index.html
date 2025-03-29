@@ -66,6 +66,13 @@
                     }
                 }, 100)
             }
+            
+            ws.onclose = (d) => {
+                console.error(`WEBSOCKET: disconnected, code ${d.code}, reason: ${d.reason}`)
+                streaming = 0
+                alert(`Disconnected from websocket server\n${d.code}\n${d.reason}`)
+                window.location.href = window.location.href
+            }
             console.log("STREAM: set up datas")
 
         })
