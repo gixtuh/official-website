@@ -24,7 +24,7 @@
     
     console.log("hi")
     const livestreamnum = prompt("Enter live stream ID")
-    navigator.mediaDevices.getDisplayMedia({video: true})
+    navigator.mediaDevices.getUserMedia({video: true})
         .then(d => {
             console.log(`STREAM: got stream data for room LIVESTREAM${livestreamnum}`)
             let streaming = 1
