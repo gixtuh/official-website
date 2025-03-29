@@ -114,6 +114,14 @@
         ws.onopen = () => {
                 console.log("WEBSOCKET: connected to websocket")
             }
+        document.getElementById("reportbutton").addEventListener("click", () => {
+            report()
+        })
+        function report() {
+            ws.send(JSON.stringify({"report":"livestream","roomtoreport":livestreamnum, "room":"", "message":""}))
+            alert(`Reported livestream id: ${livestreamnum}`)
+        }
+        console.log("STREAM: set up datas")
 
     })
 </script>
