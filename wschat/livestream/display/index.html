@@ -72,6 +72,9 @@
                 streaming = 0
                 alert(`Disconnected from websocket server\n${d.code}\n${d.reason}`)
                 document.getElementById("text1").innerText = `${d.reason}\n\n${d.code}`
+                document.getElementById("qualityinput").style = "display: none;";
+                document.getElementById("receivemodecheckbox").style = "display: none;"
+                document.getElementById("text1").style = ""
             }
             console.log("STREAM: set up datas")
 
@@ -94,6 +97,9 @@
             console.error(`WEBSOCKET: disconnected, code ${d.code}, reason: ${d.reason}`)
             streaming = 0
             alert(`Disconnected from websocket server\n${d.code}\n${d.reason}`)
+            document.getElementById("qualityinput").style = "display: none;";
+            document.getElementById("receivemodecheckbox").style = "display: none;"
+            document.getElementById("text1").style = ""
             document.getElementById("text1").innerText = `${d.reason}\n\n${d.code}`
         }
 
