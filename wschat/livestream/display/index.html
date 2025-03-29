@@ -22,9 +22,18 @@
 
 <script>
     
-    const livestreamnum = prompt("Enter live stream number")
+    const livestreamnum = prompt("Enter live stream ID")
     navigator.mediaDevices.getDisplayMedia({video: true})
         .then(d => {
+            const streaming = 1
+            const Track = d.getTracks()[0];
+            Track.onended = () => {
+                alert("Stream ended!\nReceiving data only.")
+                streaming = 0
+                document.getElementById("qualityinput").style = "display: none;";
+                document.getElementById("receivemodecheckbox").style = "display: none;"
+                document.getElementById("text1").style = "display: none;"
+            }
             const ws = new WebSocket("wss://wschat-server.glitch.me")
             ws.onmessage = e => {
                 const parsed = JSON.parse(e.data);
@@ -48,7 +57,7 @@
             }
             ws.onopen = () => {
                 setInterval(() => {
-                    if (!document.getElementById("receivemodecheckbox").checked) {
+                    if (!document.getElementById("receivemodecheckbox").checked && streaming === 1) {
                         send()
                     }
                 }, 100)
