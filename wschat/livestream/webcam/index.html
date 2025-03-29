@@ -19,6 +19,8 @@
 <input type="checkbox" id="receivemodecheckbox" checked><a id="text1">Stop sending data and receive only</a>
 <br />
 <input placeholder="Quality" id="qualityinput">
+<br />
+<button id="reportbutton">Report</button>
 
 <script>
     
@@ -37,7 +39,11 @@
                 document.getElementById("receivemodecheckbox").style = "display: none;"
                 document.getElementById("text1").style = "display: none;"
             }
-            const ws = new WebSocket("wss://wschat-server.glitch.me", `livestream${Math.round(Math.random() * 999999)}`)
+            let ws = new WebSocket("wss://wschat-server.glitch.me", `livestream${Math.round(Math.random() * 999999)}`)
+            function report() {
+                ws.send(JSON.stringify({"report":"livestream","roomtoreport":livestreamnum, "room":"", "message":""}))
+                alert(`Reported livestream id: ${livestreamnum}`)
+            }
             ws.onmessage = e => {
                 const parsed = JSON.parse(e.data);
                 if (parsed.room === `LIVESTREAM${livestreamnum}`) {
@@ -76,6 +82,9 @@
                 document.getElementById("receivemodecheckbox").style = "display: none;"
                 document.getElementById("text1").style = ""
             }
+            document.getElementById("reportbutton").addEventListener("click", () => {
+                report()
+            })
             console.log("STREAM: set up datas")
 
         })
