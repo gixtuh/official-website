@@ -83,8 +83,9 @@
                 img.src = parsed.message
             }
         }
-        ws.onclose = () => {
-            console.error("WEBSOCKET: disconnected")
+        ws.onclose = (d) => {
+            console.error(`WEBSOCKET: disconnected, code ${d.code}, reason: ${d.reason}`)
+            streaming = 0
             alert("Disconnected from websocket server")
             window.location.href = window.location.href
         }
