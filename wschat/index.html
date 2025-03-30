@@ -24,6 +24,7 @@
     ws.onclose = function(error) {
         if (error.code === 1006) {
             document.getElementById('chatbox').placeholder = "Server is offline"
+            document.getElementById('chatbox').value = ""
         } else {
             document.getElementById('chatbox').value = error.reason
         }
