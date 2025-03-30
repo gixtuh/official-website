@@ -27,7 +27,6 @@
         } else {
             document.getElementById('chatbox').value = error.reason
         }
-        document.getElementById('chatbox').value = ""
     }
     ws.onmessage = function(message) {
         const chatbox = document.getElementById('chatbox')
