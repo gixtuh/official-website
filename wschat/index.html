@@ -25,7 +25,7 @@
         if (error.code === 1006) {
             document.getElementById('chatbox').placeholder = "Server is offline"
         } else {
-            document.getElementById('chatbox').placeholder = error.reason
+            document.getElementById('chatbox').value = error.reason
         }
         document.getElementById('chatbox').value = ""
     }
