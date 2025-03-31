@@ -7,6 +7,7 @@
 <button onclick="send()">Send</button><button onclick="username()">Edit username</button><button onclick="changeroom()">Edit room</button>
 <br />
 <button onclick="resetusername()">Reset username</button>
+<button onclick="report()">Report a user</button>
 
 <script>
     const url = "wss://wschat-server.glitch.me/"
@@ -51,7 +52,7 @@
             if (document.getElementById('message').value === "$$>clear") {
                 document.getElementById("chatbox").value = ""
             } else {
-                ws.send(`{"room":"${localStorage.getItem('room')}", "message":"${localStorage.getItem('username')}: ${document.getElementById('message').value}"}`)
+                ws.send(JSON.stringify({"room":localStorage.getItem('room'), "message":`${localStorage.getItem('username')}: ${document.getElementById('message').value}`}))
             }
             document.getElementById("message").value = ""
         }
@@ -82,6 +83,10 @@
             localStorage.setItem('username', `guest${Math.round(Math.random() * 999999)}`)
             window.location.href = window.location.href
         }
+    }
+    function report() {
+        ws.send(`{"room":"","message":"","report":"user","usertoreport":"${prompt("What user do you want to report?")}"}`)
+        alert("Successfully reported user.")
     }
 
     const messageAudio = document.createElement('audio')
