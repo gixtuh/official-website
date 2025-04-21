@@ -1,32 +1,48 @@
-<link rel="stylesheet", href="style.css">
-<audio id="click" src="/click.wav"></audio>
-<script src="/script.js"></script>
-<article class="title">
-    <h1>gixtuh's official website</h1>
-    home
-    <a onclick="clickAudio()" href="/about">about me</a>
-    <a onclick="clickAudio()" href="/socials">socials</a>
-    <a onclick="clickAudio()" href="/files">files</a>
-    <a onclick="clickAudio()" href="https://github.com/gixtuh-2/official-website">github</a>
-</article>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="icon" href="favicon.ico" type="x-icon">
+    <meta charset="UTF-8">
+    <title>gixtuh's official website</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Script -->
+    <script src="/script.js" defer></script>
+
+    <!-- Audio -->
+    <audio id="click" src="/click.wav"></audio>
 </head>
-<article class="stuff">
-    <h2>the cool things i do</h2>
-    <hr />
-    i forgot
-</article>
-<br/>
-<article class="dnwiwo">
-    <h2>definitely not what i'm working on</h2>
-    <hr />
-    <button onclick="clickAudio(); alert('what if i tell you that you\'re exactly right here')">this website</button>
-    <br />
-    uploading files to <a onclick="clickAudio();" href="/files">the files section</a>
-    <br />
-    <button onclick="clickAudio(); window.location.href='/wschat'">wschat</button>
-    <br />
-    <button onclick="clickAudio(); window.location.href='/wsradio'">wsradio too</button>
-</article>
+<body>
+    <article class="title">
+        <h1>gixtuh's official website</h1>
+        home
+        <a onclick="clickAudio()" href="/about">about me</a>
+        <a onclick="clickAudio()" href="/socials">socials</a>
+        <a onclick="clickAudio()" href="/files">files</a>
+        <a onclick="clickAudio()" href="https://github.com/gixtuh-2/official-website">github</a>
+    </article>
+
+    <article class="stuff">
+        <h2>the cool things i do</h2>
+        <hr />
+        i forgot
+    </article>
+    <br/>
+
+    <article class="dnwiwo">
+        <h2>definitely not what i'm working on</h2>
+        <hr />
+        <button onclick="clickAudio(); alert('what if i tell you that you\'re exactly right here')">this website</button>
+        <br />
+        uploading files to <a onclick="clickAudio();" href="/files">the files section</a>
+        <br />
+        <button onclick="clickAudio(); window.location.href='/wschat'">wschat</button>
+        <br />
+        <button onclick="clickAudio(); window.location.href='/wsradio'">wsradio too</button>
+    </article>
+</body>
+</html>
