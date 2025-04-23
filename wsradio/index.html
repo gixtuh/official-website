@@ -71,7 +71,6 @@
         let blockedinteract = false
         let autolive = true
         let mps = 0;
-        const latency = Math.round((document.getElementById("player").seekable.end(0) - document.getElementById("player").currentTime) * 100) / 100;
         document.addEventListener('click', () => {
             if (interacted === false && blockedinteract === false) {
                 interacted = true

@@ -78,7 +78,6 @@
         let blockedinteract = false
         let autolive = true
         let mps = 0;
-        const latency = Math.round((document.getElementById("player").seekable.end(0) - document.getElementById("player").currentTime) * 100) / 100;
         const x = confirm("you're in dev mode, go back to wsradio main?")
         if (x === true) {
             window.location.href = "https://gixtuh.vercel.app/wsradio"
