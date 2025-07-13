@@ -10,7 +10,7 @@
 <button onclick="report()">Report a user</button>
 
 <script>
-    const url = "wss://wschat-server.glitch.me/"
+    const url = "wss://glorious-zebra-xgw9w9grwj4c6wx4-8080.app.github.dev/"
     const ws = new WebSocket(url, localStorage.getItem('username'))
     localStorage.setItem('room', '')
     ws.onopen = function() {
