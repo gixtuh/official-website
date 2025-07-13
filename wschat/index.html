@@ -24,7 +24,7 @@
     }
     ws.onclose = function(error) {
         if (error.code === 1006) {
-            document.getElementById('chatbox').placeholder = "Server is offline"
+            document.getElementById('chatbox').placeholder = "Server is offline. Glitch has ended project hosting since July 8th 2025. We are finding a new project hosting server that supports Node.JS"
             document.getElementById('chatbox').value = ""
         } else {
             document.getElementById('chatbox').value = error.reason
