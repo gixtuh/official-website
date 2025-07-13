@@ -63,7 +63,7 @@
 <br />
   <audio id="player" controls autoplay></audio>
     <br/>
-    <button onclick="refresh('wss://wsradio.glitch.me')">wss://wsradio.glitch.me</button>
+    <button onclick="refresh('wss://wsradio.onrender.com/')">wss://wsradio.onrender.com/</button>
     <br />
     <button onclick="window.open('https://forms.gle/5KbceK3amhxFV9uk7')">Request audio/websockets</button>
   <script>
@@ -135,7 +135,7 @@ function refresh(websocket) {
     });
         }, 300);
 }
-      refresh('wss://wsradio.glitch.me')
+      refresh('wss://wsradio.onrender.com/')
       document.addEventListener('keydown', (event) => {
           if (event.key === 's') {
               let localvar = prompt("WebSocket to switch: ");

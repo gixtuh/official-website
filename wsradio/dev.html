@@ -66,7 +66,7 @@
 <br />
   <audio id="player" controls autoplay></audio>
     <br/>
-    <button onclick="refresh('wss://wsradio.glitch.me')">wss://wsradio.glitch.me</button>
+    <button onclick="refresh('wss://wsradio.onrender.com/')">wss://wsradio.onrender.com/</button>
     <button onclick="refresh('ws://penguin.linux.test:8080')">ws://penguin.linux.test:8080</button>
     <button onclick="refresh('ws://localhost:8080')">ws://localhost:8080</button>
     <br />
@@ -155,7 +155,7 @@ function refresh(websocket) {
     });
         }, 300);
 }
-      refresh('wss://wsradio.glitch.me')
+      refresh('wss://wsradio.onrender.com/')
       document.addEventListener('keydown', (event) => {
           if (event.key === 's') {
               let localvar = prompt("WebSocket to switch: ");
