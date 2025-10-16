@@ -1,60 +1,66 @@
 body {
+    margin-top: 70px;
     font-family: Arial, Helvetica, sans-serif;
-    background-image: url(/background.jpg);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: green;
+    background-color: darkgrey;
 }
 
-a {
-    color: white;
+header {
+    background-color: grey;
+    position: fixed;
+    width: 100%;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
 }
-
-.title {
-    background-color: aqua;
-    border-radius: 10px;
-    margin: 0 auto;
-    text-align: center;
-    font-size: 50px;
+img {
+    margin-right: 5px
 }
 
 .stuff {
-    background-color: purple;
-    border-radius: 10px;
-    margin: 0 auto;
+    background-color: gray;
+    border-radius: 5px;
     text-align: center;
-    color: white;
+    color: black;
     padding-bottom: 10px;
+    padding-top: 1px;
 }
 
 button {
-    background-color: chocolate;
-    color: white;
+    background-color: darkgrey;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 5px;
     font-size: 18px;
     padding: 10px 10px;
     width: 200px;
     height: 26px;
     line-height: 0.2;
-    transition: transform 0.2s ease;
+    transition: filter 0.2s ease;
 }
 button:hover {
     cursor: pointer;
-    transform: scale(1.2);
+    filter: brightness(0.7);
 }
 
 .dnwiwo {
-    background-color: orange;
-    border-radius: 10px;
+    background-color: grey;
+    border-radius: 5px;
     margin: 0 auto;
     text-align: center;
     color: black;
-    padding-bottom: 10px
+    padding-bottom: 10px;
+    padding-top: 1px;
 }
 
 a {
-    transition: transform 0.2s ease;
+    color: lightgrey;
+    margin-left: 5px;
+    transition: filter 0.2s ease;
+    text-decoration: none;
 }
 a:hover {
-    transform: scale(-1.2);
+    filter: brightness(0);
 }
