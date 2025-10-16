@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WSRadio</title>
+
+    <style>
+        body {
+            text-align: center;
+        }
+    </style>
+    
+</head>
+<body>
+  <h1>WSRadio</h1>
+  <hr />
+  <a id="current">Current websocket: ???</a>
+<br />
+  <a id="state">State: Initializing...</a>
+<br />
+  <a id="livestate">Live state: ???</a>
+<br />
+  <a id ="latency">Latency: ???</a>
+<br/>
+<p>release v1</p>
+<a>S - Switch websocket</a>
+<br />
+<a>P / Space - Pause</a>
+<br />
+<a>L - Sync live</a>
+<br />
+<a id="autolive">1 - Toggle automatic live syncing (on)</a>
+<br />
+  <audio id="player" controls autoplay></audio>
+    <br/>
+    <button onclick="refresh('wss://wsradio.onrender.com/')">wss://wsradio.onrender.com/</button>
+    <br />
+    <button onclick="window.open('https://forms.gle/5KbceK3amhxFV9uk7')">Request audio/websockets</button>
+  <script>
+        let interacted = false
+        let blockedinteract = false
+        let autolive = true
+        let mps = 0;
+        document.addEventListener('click', () => {
+            if (interacted === false && blockedinteract === false) {
+                interacted = true
+                blockedinteract = true
+            }
+        })
+      
+      let socket;
+function refresh(websocket) {
+    if (socket) {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.close()
+        } else {}
+    } else {}
+    setTimeout(() => {
+    document.getElementById("current").innerText = `Current websocket: ${websocket}`
+    document.getElementById('state').innerText = 'State: Connecting...'
+    let audiosrc = document.getElementById('player');
+    let mediaSource = new MediaSource();
+    audiosrc.src = URL.createObjectURL(mediaSource);
+    socket = new WebSocket(websocket);
+    let sourceBuffer;
+
+    mediaSource.addEventListener('sourceopen', () => {
+      // You can use 'audio/webm; codecs="opus"' or 'audio/mpeg' for MP3
+      sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+
+      socket.binaryType = 'arraybuffer';
+      socket.onopen = () => {
+      }
+      socket.onerror = () => {
+          console.error("connection errored")
+          document.getElementById('state').innerText = 'State: Error'
+      }
+        
+
+      socket.onmessage = (event) => {
+        if (mediaSource.readyState === 'open' && sourceBuffer && !sourceBuffer.updating) {
+            if (interacted === true) {
+                    mps++
+                    document.getElementById('state').innerText = 'State: Connected! | Playing'
+                    sourceBuffer.appendBuffer(event.data);
+                    audiosrc.play();
+                    try {
+                        document.getElementById("latency").innerText = `Latency: ${Math.round((document.getElementById("player").seekable.end(0) - document.getElementById("player").currentTime) * 100) / 100}s`
+                    } catch (e) {}
+                } else {
+                    audiosrc.pause();
+                    if (blockedinteract === false) {
+                        document.getElementById('state').innerText = 'State: Connected! | Waiting for user interaction'
+                    } else {
+                        document.getElementById('state').innerText = 'State: Connected! | Paused. P or space to unpause'
+                    }
+            }
+        }
+
+      socket.onclose = (event) => {
+          console.warn("closed connection")
+          document.getElementById('state').innerText = `State: Closed.\n${event.code}`
+      }
+      };
+    });
+        }, 300);
+}
+      refresh('wss://wsradio.onrender.com/')
+      document.addEventListener('keydown', (event) => {
+          if (event.key === 's') {
+              let localvar = prompt("WebSocket to switch: ");
+              if (localvar === null || localvar.trim() === "") {} else {
+                  refresh(localvar)
+              }
+          } else if (event.key === 'p' || event.key === ' ') {
+            if (interacted === true) {
+                interacted = false
+            } else {
+                interacted = true
+            }
+          } else if (event.key === 'l') {
+              document.getElementById("player").currentTime = document.getElementById("player").seekable.end(0)
+          } else if (event.key === '1') {
+              if (autolive === true) {
+                  document.getElementById("autolive").innerText = `1 - Toggle automatic live syncing (off)`
+                  autolive = false
+              } else {
+                  document.getElementById("autolive").innerText = `1 - Toggle automatic live syncing (on)`
+                  autolive = true
+              }
+          }
+      })
+  </script> 
+
+
+    <script>
+        setInterval(() => {
+            if (interacted === true) {
+                try {
+                    if (document.getElementById("player").currentTime > document.getElementById("player").seekable.end(0) - .6) {
+                        document.getElementById("livestate").innerText = "Live state: Synced"
+                    } else {
+                        document.getElementById("livestate").innerText = "Live state: Not synced | Press L to sync."
+                        if (autolive === true) {
+                            document.getElementById("player").currentTime = document.getElementById("player").seekable.end(0)
+                        }
+                    }
+                } catch (err) {}
+            }
+        }, 100);
+    </script>
+
+
+    
+</body>
+</html>
