@@ -68,8 +68,6 @@
         canvas.addEventListener("mousemove", e => {
             const pos = getRealMousePos(e);
             if(!pos) return;
-            cursor.style.left = e.clientX + "px";
-            cursor.style.top  = e.clientY + "px";
             lastMousePos = pos;
         });
         
