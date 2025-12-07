@@ -7,11 +7,27 @@
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; width: 100vw; height: 100vh; }
         #cursor { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; pointer-events: none; background: rgba(255,255,255,0.4); z-index: 9999; }
+
+        /* text box + button floating UI */
+        #typeBox {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 60vw; padding: 8px; border-radius: 6px; border: none;
+            background: rgba(255,255,255,0.18); color: white; outline: none; font-size: 14px;
+        }
+        #sendText {
+            position: absolute; bottom: 10px; right: calc(20vw - 10px);
+            padding: 8px 12px; border-radius: 6px; border: none;
+            background: #33aa33; cursor: pointer; color: black; font-weight: bold;
+        }
+        #sendText:hover { background: #44cc44; }
     </style>
 </head>
 <body>
     <canvas id="screen"></canvas>
     <div id="cursor"></div>
+    <input id="typeBox" placeholder="Type to remote PC...">
+    <button id="sendText">SEND</button>
+
     <script>
         const baseURL = prompt("enter control websocket here\nthere isnt password protection so DO NOT host your websocket to the public"); 
         const wsFrames = new WebSocket(baseURL + "/frames");
@@ -25,7 +41,6 @@
         let realW = 1, realH = 1;
         let drawRect = {x:0, y:0, w:0, h:0};
         
-        // ===== Mouse smoothing queue =====
         function getRealMousePos(e){
             const mx = e.clientX, my = e.clientY;
             if(mx < drawRect.x || mx > drawRect.x + drawRect.w) return null;
@@ -50,7 +65,6 @@
             }
         }, 300);
         
-        // Mouse events
         canvas.addEventListener("mousemove", e => {
             const pos = getRealMousePos(e);
             if(!pos) return;
@@ -91,6 +105,13 @@
                 ctx.drawImage(img, x, y, w, h);
                 URL.revokeObjectURL(url);
             };
+        };
+
+        // ====== type button ======
+        const box = document.getElementById("typeBox");
+        document.getElementById("sendText").onclick = () => {
+            wsInput.send(JSON.stringify({ type: "type", text: box.value }));
+            box.value = "";
         };
     </script>
 </body>

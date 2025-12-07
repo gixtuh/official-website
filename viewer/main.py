@@ -3,16 +3,15 @@ from PIL import Image
 from io import BytesIO
 import websockets
 
+# pip install pyautogui mss pillow websockets
+
 FPS = 30
 SCALE = 1
 JPEG_QUALITY = 25
 sct = mss.mss()
 held_keys = set()
 
-# ===== Frame Queue =====
 frame_queue = asyncio.Queue(maxsize=1)
-
-# ===== Screen Capture Task =====
 async def capture_screen_loop():
     monitor = sct.monitors[0]
     while True:
@@ -24,14 +23,12 @@ async def capture_screen_loop():
         img.save(buffer, format="JPEG", quality=JPEG_QUALITY)
         frame_data = buffer.getvalue()
 
-        # keep only the latest frame
         if frame_queue.full():
             try: frame_queue.get_nowait()
             except: pass
         await frame_queue.put((frame_data, new_w, new_h))
         await asyncio.sleep(1 / FPS)
 
-# ===== Frame Handler =====
 async def frame_handler(websocket):
     while True:
         try:
@@ -41,12 +38,10 @@ async def frame_handler(websocket):
         except websockets.ConnectionClosed:
             break
 
-# ===== Input Handler =====
 async def input_handler(websocket):
     async for message in websocket:
         try:
             data = json.loads(message)
-            # Mouse
             if data.get("type") == "mouse":
                 x, y = data["x"], data["y"]
                 pyautogui.moveTo(x, y)
@@ -55,7 +50,6 @@ async def input_handler(websocket):
                 if state == "down": pyautogui.mouseDown(button=button)
                 elif state == "up": pyautogui.mouseUp(button=button)
                 elif data.get("click"): pyautogui.click(button=button)
-            # Keyboard
             elif data.get("type") == "keyboard":
                 key = data["key"]
                 action = data.get("action", "press")
@@ -72,10 +66,14 @@ async def input_handler(websocket):
                     pyautogui.keyUp(key_to_press); held_keys.discard(key_to_press)
                 else:
                     pyautogui.press(key_to_press)
+            elif data.get("type") == "type":
+                txt = data.get("text", "")
+                if txt:
+                    pyautogui.typewrite(txt, interval=0)
+
         except Exception as e:
             print("ERR:", e)
 
-# ===== Main Handler with Routing =====
 async def handler(websocket):
     path = websocket.request.path
     if path == "/input":
@@ -83,13 +81,11 @@ async def handler(websocket):
     else:
         await frame_handler(websocket)
 
-# ===== Server =====
 async def main():
-    # start screen capture loop
     asyncio.create_task(capture_screen_loop())
 
     async with websockets.serve(handler, "0.0.0.0", 8765, max_size=50_000_000):
         print("Server LIVE on ws://0.0.0.0:8765 (/frames & /input)")
-        await asyncio.Future()  # run forever
+        await asyncio.Future()
 
 asyncio.run(main())
