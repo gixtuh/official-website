@@ -7,7 +7,7 @@
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; width: 100vw; height: 100vh; }
         #cursor { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; pointer-events: none; background: rgba(255,255,255,0.4); z-index: 9999; }
-
+        
         /* text box + button floating UI */
         #typeBox {
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
@@ -27,7 +27,7 @@
     <div id="cursor"></div>
     <input id="typeBox" placeholder="Type to remote PC...">
     <button id="sendText">SEND</button>
-
+    
     <script>
         const baseURL = prompt("enter control websocket here\nthere isnt password protection so DO NOT host your websocket to the public"); 
         const wsFrames = new WebSocket(baseURL + "/frames");
@@ -83,8 +83,16 @@
             wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"up"}));
         });
         
-        document.addEventListener("keydown", e => wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"})));
-        document.addEventListener("keyup", e => wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"})));
+        document.addEventListener("keydown", e => {
+            if (document.activeElement === box) return; // skip sending to remote
+            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"}));
+        });
+        
+        document.addEventListener("keyup", e => {
+            if (document.activeElement === box) return; // skip sending to remote
+            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
+        });
+        
         
         const img = new Image();
         wsFrames.onmessage = evt => {
@@ -106,7 +114,7 @@
                 URL.revokeObjectURL(url);
             };
         };
-
+        
         // ====== type button ======
         const box = document.getElementById("typeBox");
         document.getElementById("sendText").onclick = () => {

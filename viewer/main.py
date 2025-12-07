@@ -69,7 +69,7 @@ async def input_handler(websocket):
             elif data.get("type") == "type":
                 txt = data.get("text", "")
                 if txt:
-                    pyautogui.typewrite(txt, interval=0)
+                    pyautogui.typewrite(txt, interval=0.03)
 
         except Exception as e:
             print("ERR:", e)
