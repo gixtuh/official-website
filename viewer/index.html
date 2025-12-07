@@ -27,9 +27,22 @@
     <button id="sendText">SEND</button>
     
     <script>
-        const baseURL = prompt("enter control websocket here\nthere isnt password protection so DO NOT host your websocket to the public"); 
-        const wsFrames = new WebSocket(baseURL + "/frames");
-        const wsInput  = new WebSocket(baseURL + "/input");
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+        
+        let baseURL = getParam("ws");
+        let password = getParam("passwd");
+        
+        if (!baseURL) {
+            baseURL = prompt("enter control websocket here");
+        }
+        if (!password) {
+            password = prompt("enter password here");
+        }
+        const wsFrames = new WebSocket(baseURL + "/frames", password);
+        const wsInput  = new WebSocket(baseURL + "/input", password);
         
         wsFrames.binaryType = "arraybuffer";
         

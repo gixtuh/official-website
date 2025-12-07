@@ -9,6 +9,7 @@ import websockets
 FPS = 30
 SCALE = 1
 JPEG_QUALITY = 25
+PASSWORD = "1234567890"
 sct = mss.mss()
 held_keys = set()
 clients_frames = set()
@@ -98,6 +99,10 @@ async def input_handler(websocket):
             print("error:", e)
 
 async def handler(websocket):
+    if websocket.subprotocol != PASSWORD:
+        await websocket.close(code=4001, reason="password entered was incorrect")
+        return
+
     path = websocket.request.path
     if path == "/input":
         await input_handler(websocket)
@@ -113,7 +118,13 @@ async def main():
     asyncio.create_task(capture_screen_loop())
     asyncio.create_task(cursor_tracker())
 
-    async with websockets.serve(handler, "0.0.0.0", 8765, max_size=50_000_000):
+    async with websockets.serve(
+        handler,
+        "0.0.0.0",
+        8765,
+        max_size=50_000_000,
+        subprotocols=[PASSWORD]
+    ):
         print("live")
         print("use ws://localhost:8765 to in https://gixtuh.vercel.app/viewer to use vnc")
         print("HOSTING THE WEBSOCKET TO THE PUBLIC IS NOT RECOMMENDED")
