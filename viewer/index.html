@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>remote controller</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #cursor { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; pointer-events: none; background: rgba(255,255,255,0.4); z-index: 9999; }
+    </style>
+</head>
+<body>
+    <canvas id="screen"></canvas>
+    <div id="cursor"></div>
+    <script>
+        const baseURL = prompt("enter control websocket here\nthere isnt password protection so DO NOT host your websocket to the public"); 
+        const wsFrames = new WebSocket(baseURL + "/frames");
+        const wsInput  = new WebSocket(baseURL + "/input");
+        
+        wsFrames.binaryType = "arraybuffer";
+        
+        const canvas = document.getElementById("screen");
+        const ctx = canvas.getContext("2d");
+        const cursor = document.getElementById("cursor");
+        let realW = 1, realH = 1;
+        let drawRect = {x:0, y:0, w:0, h:0};
+        
+        // ===== Mouse smoothing queue =====
+        function getRealMousePos(e){
+            const mx = e.clientX, my = e.clientY;
+            if(mx < drawRect.x || mx > drawRect.x + drawRect.w) return null;
+            if(my < drawRect.y || my > drawRect.y + drawRect.h) return null;
+            return {
+                x: (mx - drawRect.x) * (realW / drawRect.w),
+                y: (my - drawRect.y) * (realH / drawRect.h)
+            };
+        }
+        
+        let lastMousePos = null;
+        
+        setInterval(() => {
+            if (lastMousePos) {
+                wsInput.send(JSON.stringify({
+                    type: "mouse",
+                    x: lastMousePos.x,
+                    y: lastMousePos.y,
+                    move: true
+                }));
+                lastMousePos = null;
+            }
+        }, 300);
+        
+        // Mouse events
+        canvas.addEventListener("mousemove", e => {
+            const pos = getRealMousePos(e);
+            if(!pos) return;
+            cursor.style.left = e.clientX + "px";
+            cursor.style.top  = e.clientY + "px";
+            lastMousePos = pos;
+        });
+        
+        canvas.addEventListener("mousedown", e => {
+            const pos = getRealMousePos(e); if(!pos) return;
+            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"down"}));
+        });
+        
+        canvas.addEventListener("mouseup", e => {
+            const pos = getRealMousePos(e); if(!pos) return;
+            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"up"}));
+        });
+        
+        document.addEventListener("keydown", e => wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"})));
+        document.addEventListener("keyup", e => wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"})));
+        
+        const img = new Image();
+        wsFrames.onmessage = evt => {
+            if (typeof evt.data === "string") {
+                const data = JSON.parse(evt.data);
+                if (data.type === "size") { realW = data.w; realH = data.h; }
+                return;
+            }
+            const blob = new Blob([evt.data], { type: "image/jpeg" });
+            const url = URL.createObjectURL(blob);
+            img.src = url;
+            img.onload = () => {
+                const cw = window.innerWidth, ch = window.innerHeight;
+                canvas.width = cw; canvas.height = ch;
+                const scale = Math.min(cw / realW, ch / realH);
+                const w = realW * scale, h = realH * scale, x = (cw - w) / 2, y = (ch - h) / 2;
+                drawRect = {x, y, w, h};
+                ctx.drawImage(img, x, y, w, h);
+                URL.revokeObjectURL(url);
+            };
+        };
+    </script>
+</body>
+</html>
