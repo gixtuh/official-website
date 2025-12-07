@@ -7,8 +7,6 @@
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; width: 100vw; height: 100vh; }
         #cursor { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; pointer-events: none; background: rgba(255,255,255,0.4); z-index: 9999; }
-        
-        /* text box + button floating UI */
         #typeBox {
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
             width: 60vw; padding: 8px; border-radius: 6px; border: none;
@@ -25,7 +23,7 @@
 <body>
     <canvas id="screen"></canvas>
     <div id="cursor"></div>
-    <input id="typeBox" placeholder="Type to remote PC...">
+    <input id="typeBox" placeholder="fast type to vnc">
     <button id="sendText">SEND</button>
     
     <script>
@@ -72,13 +70,13 @@
         });
         
         canvas.addEventListener("mousedown", e => {
-            if (document.activeElement === typeBox) return; // don't click remote
+            if (document.activeElement === typeBox) return;
             const pos = getRealMousePos(e); if(!pos) return;
             wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"down"}));
         });
         
         canvas.addEventListener("mouseup", e => {
-            if (document.activeElement === typeBox) return; // don't click remote
+            if (document.activeElement === typeBox) return;
             const pos = getRealMousePos(e); if(!pos) return;
             wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"up"}));
         });
@@ -96,7 +94,6 @@
                 }
                 
                 if (data.type === "cursor") {
-                    // Scale remote cursor to screen size
                     const cx = drawRect.x + (data.x * (drawRect.w / realW));
                     const cy = drawRect.y + (data.y * (drawRect.h / realH));
                     

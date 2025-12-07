@@ -45,7 +45,6 @@ async def cursor_tracker():
         try:
             x, y = pyautogui.position()
             packet = json.dumps({"type": "cursor", "x": x, "y": y})
-            # broadcast to ALL /frames clients
             for ws in list(clients_frames):
                 try:
                     await ws.send(packet)
