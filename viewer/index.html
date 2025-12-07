@@ -25,7 +25,7 @@
 <body>
     <canvas id="screen"></canvas>
     <div id="cursor"></div>
-    <input id="typeBox" placeholder="immediately type">
+    <input id="typeBox" placeholder="Type to remote PC...">
     <button id="sendText">SEND</button>
     
     <script>
@@ -92,9 +92,23 @@
         wsFrames.onmessage = evt => {
             if (typeof evt.data === "string") {
                 const data = JSON.parse(evt.data);
-                if (data.type === "size") { realW = data.w; realH = data.h; }
+                
+                if (data.type === "size") { 
+                    realW = data.w; realH = data.h;
+                }
+                
+                if (data.type === "cursor") {
+                    // Scale remote cursor to screen size
+                    const cx = drawRect.x + (data.x * (drawRect.w / realW));
+                    const cy = drawRect.y + (data.y * (drawRect.h / realH));
+                    
+                    cursor.style.left = cx + "px";
+                    cursor.style.top  = cy + "px";
+                }
+                
                 return;
             }
+            
             const blob = new Blob([evt.data], { type: "image/jpeg" });
             const url = URL.createObjectURL(blob);
             img.src = url;

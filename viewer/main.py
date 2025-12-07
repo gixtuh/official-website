@@ -11,6 +11,7 @@ SCALE = 1
 JPEG_QUALITY = 25
 sct = mss.mss()
 held_keys = set()
+clients_frames = set()
 
 frame_queue = asyncio.Queue(maxsize=1)
 async def capture_screen_loop():
@@ -27,17 +28,33 @@ async def capture_screen_loop():
         if frame_queue.full():
             try: frame_queue.get_nowait()
             except: pass
-        await frame_queue.put((frame_data, new_w, new_h))
+        await frame_queue.put((frame_data, img.width, img.height))
         await asyncio.sleep(1 / FPS)
 
 async def frame_handler(websocket):
     while True:
         try:
             frame, w, h = await frame_queue.get()
-            await websocket.send(json.dumps({"type": "size", "w": w, "h": h}))
+            await websocket.send(json.dumps({"type": "size", "w": w, "h": h, "scale": SCALE}))
             await websocket.send(frame)
         except websockets.ConnectionClosed:
             break
+        
+async def cursor_tracker():
+    while True:
+        try:
+            x, y = pyautogui.position()
+            packet = json.dumps({"type": "cursor", "x": x, "y": y})
+            # broadcast to ALL /frames clients
+            for ws in list(clients_frames):
+                try:
+                    await ws.send(packet)
+                except:
+                    pass
+        except:
+            pass
+        await asyncio.sleep(0.05)
+
         
 async def run_blocking(func, *args, **kwargs):
     loop = asyncio.get_running_loop()
@@ -79,20 +96,29 @@ async def input_handler(websocket):
                     await async_type(txt)
 
         except Exception as e:
-            print("ERR:", e)
+            print("error:", e)
 
 async def handler(websocket):
     path = websocket.request.path
     if path == "/input":
         await input_handler(websocket)
     else:
-        await frame_handler(websocket)
+        clients_frames.add(websocket)
+        try:
+            await frame_handler(websocket)
+        finally:
+            clients_frames.discard(websocket)
+
 
 async def main():
     asyncio.create_task(capture_screen_loop())
+    asyncio.create_task(cursor_tracker())
 
     async with websockets.serve(handler, "0.0.0.0", 8765, max_size=50_000_000):
-        print("Server LIVE on ws://0.0.0.0:8765 (/frames & /input)")
+        print("live")
+        print("use ws://localhost:8765 to in https://gixtuh.vercel.app/viewer to use vnc")
+        print("HOSTING THE WEBSOCKET TO THE PUBLIC IS NOT RECOMMENDED")
         await asyncio.Future()
+
 
 asyncio.run(main())
