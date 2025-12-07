@@ -1,4 +1,5 @@
 import asyncio, json, pyautogui, mss
+pyautogui.FAILSAFE = False
 from PIL import Image
 from io import BytesIO
 import websockets
