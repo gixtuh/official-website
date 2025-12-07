@@ -37,6 +37,12 @@ async def frame_handler(websocket):
             await websocket.send(frame)
         except websockets.ConnectionClosed:
             break
+        
+async def run_blocking(func, *args, **kwargs):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
+async def async_type(text):
+    await run_blocking(pyautogui.typewrite, text)
 
 async def input_handler(websocket):
     async for message in websocket:
@@ -64,12 +70,12 @@ async def input_handler(websocket):
                     pyautogui.keyDown(key_to_press); held_keys.add(key_to_press)
                 elif action=="up" and key_to_press in held_keys:
                     pyautogui.keyUp(key_to_press); held_keys.discard(key_to_press)
-                else:
+                elif action == "press":
                     pyautogui.press(key_to_press)
             elif data.get("type") == "type":
                 txt = data.get("text", "")
                 if txt:
-                    pyautogui.typewrite(txt, interval=0.03)
+                    await async_type(txt)
 
         except Exception as e:
             print("ERR:", e)

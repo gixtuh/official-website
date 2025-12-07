@@ -25,7 +25,7 @@
 <body>
     <canvas id="screen"></canvas>
     <div id="cursor"></div>
-    <input id="typeBox" placeholder="Type to remote PC...">
+    <input id="typeBox" placeholder="immediately type">
     <button id="sendText">SEND</button>
     
     <script>
@@ -74,24 +74,18 @@
         });
         
         canvas.addEventListener("mousedown", e => {
+            if (document.activeElement === typeBox) return; // don't click remote
             const pos = getRealMousePos(e); if(!pos) return;
             wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"down"}));
         });
         
         canvas.addEventListener("mouseup", e => {
+            if (document.activeElement === typeBox) return; // don't click remote
             const pos = getRealMousePos(e); if(!pos) return;
             wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"up"}));
         });
         
-        document.addEventListener("keydown", e => {
-            if (document.activeElement === box) return; // skip sending to remote
-            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"}));
-        });
         
-        document.addEventListener("keyup", e => {
-            if (document.activeElement === box) return; // skip sending to remote
-            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
-        });
         
         
         const img = new Image();
@@ -114,13 +108,39 @@
                 URL.revokeObjectURL(url);
             };
         };
+        const typeBox  = document.getElementById("typeBox");
+        const sendBtn  = document.getElementById("sendText");
         
-        // ====== type button ======
-        const box = document.getElementById("typeBox");
-        document.getElementById("sendText").onclick = () => {
-            wsInput.send(JSON.stringify({ type: "type", text: box.value }));
-            box.value = "";
-        };
+        function sendType() {
+            if (typeBox.value.trim() !== "") {
+                wsInput.send(JSON.stringify({
+                    type: "type",
+                    text: typeBox.value
+                }));
+                typeBox.value = "";
+            }
+        }
+        
+        
+        typeBox.addEventListener("keydown", (e) => {
+            e.stopPropagation();
+            if (e.key === "Enter") {
+                e.preventDefault();
+                sendType();
+            }
+        });
+        
+        sendBtn.addEventListener("click", sendType);
+        
+        document.addEventListener("keydown", e => {
+            if (document.activeElement === typeBox) return;
+            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"}));
+        });
+        document.addEventListener("keyup", e => {
+            if (document.activeElement === typeBox) return;
+            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
+        });
+        
     </script>
 </body>
 </html>
