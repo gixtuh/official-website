@@ -41,7 +41,7 @@
         if (!password) {
             password = prompt("enter password here");
         }
-        const wsFrames = new WebSocket(baseURL + "/frames", password);
+        const wsFrames = new WebSocket(baseURL, password);
         const wsInput  = new WebSocket(baseURL + "/input", password);
         
         wsFrames.binaryType = "arraybuffer";
@@ -56,53 +56,46 @@
         let wsAudio = new WebSocket(baseURL + "/audio", password);
         wsAudio.binaryType = "arraybuffer";
         
-        let audioCtx = null;
-        let sampleRate = 44100;
-        let channels   = 2;
-        let chunkSize  = 1024;
+        let sampleRate = 48000;  // default
+        let channels = 1;
+        let queueTime = 0;
+        let started = false;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        queueTime = audioCtx.currentTime;
         
-        wsAudio.onmessage = (evt) => {
-            console.log("🔊 audio packet:", evt.data);
-            if (typeof evt.data === "string") {
-                // First packet = metadata
-                const info = JSON.parse(evt.data);
-                if (info.type === "audio-info") {
-                    sampleRate = info.rate;
-                    channels   = info.channels;
-                    chunkSize  = info.chunk;
-                    console.log("🎧 Audio format:", info);
-                }
-                return;
-            }
+        wsAudio.onmessage = async (evt) => {
+            if (!(evt.data instanceof ArrayBuffer)) return;
             
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)({
-                    sampleRate: sampleRate
-                });
-            }
+            // Resume context on first chunk
+            if (audioCtx.state === "suspended") await audioCtx.resume();
             
             const pcm = new Int16Array(evt.data);
-            let float32 = new Float32Array(pcm.length);
-            for (let i = 0; i < pcm.length; i++) {
-                float32[i] = pcm[i] / 32768;  // convert PCM int16 → -1..1 float
-            }
+            const float32 = new Float32Array(pcm.length);
+            for (let i = 0; i < pcm.length; i++) float32[i] = pcm[i] / 32768;
             
-            let buffer = audioCtx.createBuffer(channels, float32.length / channels, sampleRate);
+            const buffer = audioCtx.createBuffer(1, float32.length, sampleRate);
+            buffer.getChannelData(0).set(float32);
             
-            for (let ch = 0; ch < channels; ch++) {
-                let channelData = buffer.getChannelData(ch);
-                for (let i = 0; i < channelData.length; i++) {
-                    channelData[i] = float32[i * channels + ch];
-                }
-            }
-            
-            let src = audioCtx.createBufferSource();
+            const src = audioCtx.createBufferSource();
             src.buffer = buffer;
             src.connect(audioCtx.destination);
-            src.start();
+            
+            // <<< FIX LOW PITCH: double speed & pitch >>>
+            src.playbackRate.value = 2.0;
+            
+            src.start(queueTime);
+            queueTime += buffer.duration / 2; // adjust for doubled speed
         };
         
         
+        let clicked = false
+        window.addEventListener("click", () => {
+            if (!clicked) {
+                audioCtx.resume();
+                console.log("AudioContext resumed");
+                clicked = true;
+            }
+        });
         function getRealMousePos(e){
             const mx = e.clientX, my = e.clientY;
             if(mx < drawRect.x || mx > drawRect.x + drawRect.w) return null;
