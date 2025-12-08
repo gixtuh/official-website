@@ -51,6 +51,56 @@
         const cursor = document.getElementById("cursor");
         let realW = 1, realH = 1;
         let drawRect = {x:0, y:0, w:0, h:0};
+        /* ------------------ AUDIO RECEIVER ------------------ */
+        
+        let wsAudio = new WebSocket(baseURL + "/audio", password);
+        wsAudio.binaryType = "arraybuffer";
+        
+        let audioCtx = null;
+        let sampleRate = 44100;
+        let channels   = 2;
+        let chunkSize  = 1024;
+        
+        wsAudio.onmessage = (evt) => {
+            if (typeof evt.data === "string") {
+                // First packet = metadata
+                const info = JSON.parse(evt.data);
+                if (info.type === "audio-info") {
+                    sampleRate = info.rate;
+                    channels   = info.channels;
+                    chunkSize  = info.chunk;
+                    console.log("🎧 Audio format:", info);
+                }
+                return;
+            }
+            
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)({
+                    sampleRate: sampleRate
+                });
+            }
+            
+            const pcm = new Int16Array(evt.data);
+            let float32 = new Float32Array(pcm.length);
+            for (let i = 0; i < pcm.length; i++) {
+                float32[i] = pcm[i] / 32768;  // convert PCM int16 → -1..1 float
+            }
+            
+            let buffer = audioCtx.createBuffer(channels, float32.length / channels, sampleRate);
+            
+            for (let ch = 0; ch < channels; ch++) {
+                let channelData = buffer.getChannelData(ch);
+                for (let i = 0; i < channelData.length; i++) {
+                    channelData[i] = float32[i * channels + ch];
+                }
+            }
+            
+            let src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.connect(audioCtx.destination);
+            src.start();
+        };
+        
         
         function getRealMousePos(e){
             const mx = e.clientX, my = e.clientY;
@@ -162,6 +212,12 @@
             if (document.activeElement === typeBox) return;
             wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
         });
+        document.body.addEventListener("click", () => {
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+        });
+        
         
     </script>
 </body>

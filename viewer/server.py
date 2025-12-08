@@ -3,13 +3,21 @@ pyautogui.FAILSAFE = False
 from PIL import Image
 from io import BytesIO
 import websockets
+import sounddevice as sd
+import numpy as np
 
-# pip install pyautogui mss pillow websockets
+# pip install pyautogui mss pillow websockets sounddevice numpy
 
-FPS = 30
-SCALE = 1
-JPEG_QUALITY = 25
-PASSWORD = "1234567890"
+FPS = 30 # 30 is the recommended one
+JPEG_QUALITY = 25 # 25 recommended
+
+PASSWORD = "1234567890" # edit this for password
+
+
+# code itself dont touch
+AUDIO_SAMPLE_RATE = 44100
+AUDIO_CHANNELS = 2
+AUDIO_CHUNK = 1024
 sct = mss.mss()
 held_keys = set()
 clients_frames = set()
@@ -20,7 +28,7 @@ async def capture_screen_loop():
     while True:
         img = sct.grab(monitor)
         img = Image.frombytes("RGB", (img.width, img.height), img.rgb)
-        new_w, new_h = int(img.width*SCALE), int(img.height*SCALE)
+        new_w, new_h = int(img.width*1), int(img.height*1)
         img = img.resize((new_w, new_h), Image.LANCZOS)
         buffer = BytesIO()
         img.save(buffer, format="JPEG", quality=JPEG_QUALITY)
@@ -31,12 +39,33 @@ async def capture_screen_loop():
             except: pass
         await frame_queue.put((frame_data, img.width, img.height))
         await asyncio.sleep(1 / FPS)
+        
+        
+audio_queue = asyncio.Queue(maxsize=1)
+
+async def capture_audio_loop():
+    def callback(indata, frames, time, status):
+        if not audio_queue.full():
+            audio_queue.put_nowait(indata.copy())
+
+    stream = sd.InputStream(
+        channels=AUDIO_CHANNELS,
+        samplerate=AUDIO_SAMPLE_RATE,
+        blocksize=AUDIO_CHUNK,
+        callback=callback,
+        dtype="int16"
+    )
+    stream.start()
+
+    while True:
+        await asyncio.sleep(0.01)
+
 
 async def frame_handler(websocket):
     while True:
         try:
             frame, w, h = await frame_queue.get()
-            await websocket.send(json.dumps({"type": "size", "w": w, "h": h, "scale": SCALE}))
+            await websocket.send(json.dumps({"type": "size", "w": w, "h": h, "scale": 1}))
             await websocket.send(frame)
         except websockets.ConnectionClosed:
             break
@@ -54,6 +83,23 @@ async def cursor_tracker():
         except:
             pass
         await asyncio.sleep(0.05)
+        
+async def audio_handler(websocket):
+    meta = {
+        "type":"audio-info",
+        "rate": AUDIO_SAMPLE_RATE,
+        "channels": AUDIO_CHANNELS,
+        "chunk": AUDIO_CHUNK
+    }
+    await websocket.send(json.dumps(meta))
+
+    while True:
+        try:
+            data = await audio_queue.get()
+            await websocket.send(data.tobytes())
+        except websockets.ConnectionClosed:
+            break
+
 
         
 async def run_blocking(func, *args, **kwargs):
@@ -106,6 +152,8 @@ async def handler(websocket):
     path = websocket.request.path
     if path == "/input":
         await input_handler(websocket)
+    elif path == "/audio":
+        await audio_handler(websocket)
     else:
         clients_frames.add(websocket)
         try:
