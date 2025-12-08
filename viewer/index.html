@@ -62,6 +62,7 @@
         let chunkSize  = 1024;
         
         wsAudio.onmessage = (evt) => {
+            console.log("🔊 audio packet:", evt.data);
             if (typeof evt.data === "string") {
                 // First packet = metadata
                 const info = JSON.parse(evt.data);
@@ -212,11 +213,17 @@
             if (document.activeElement === typeBox) return;
             wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
         });
-        document.body.addEventListener("click", () => {
+        document.addEventListener("click", () => {
             if (audioCtx && audioCtx.state === "suspended") {
                 audioCtx.resume();
             }
         });
+        document.addEventListener("keydown", () => {
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+        });
+        
         
         
     </script>

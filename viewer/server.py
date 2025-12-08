@@ -13,7 +13,6 @@ JPEG_QUALITY = 25 # 25 recommended
 
 PASSWORD = "1234567890" # edit this for password
 
-
 # code itself dont touch
 AUDIO_SAMPLE_RATE = 44100
 AUDIO_CHANNELS = 2
@@ -41,12 +40,31 @@ async def capture_screen_loop():
         await asyncio.sleep(1 / FPS)
         
         
-audio_queue = asyncio.Queue(maxsize=1)
+audio_queue = asyncio.Queue(maxsize=8)  # slightly larger to tolerate jitter
+
+def safe_put(data):
+    try:
+        audio_queue.put_nowait(data)
+    except asyncio.QueueFull:
+        pass  # just drop it, no crying
+
 
 async def capture_audio_loop():
+    """
+    Start sounddevice InputStream and safely push frames into asyncio.Queue
+    using loop.call_soon_threadsafe from the callback thread.
+    """
+    loop = asyncio.get_running_loop()
+
     def callback(indata, frames, time, status):
-        if not audio_queue.full():
-            audio_queue.put_nowait(indata.copy())
+        # indata is a NumPy array; copy it before passing to other thread/loop
+        chunk = indata.copy()
+        # enqueue thread-safely; drop if the queue is full to avoid blocking
+        try:
+            loop.call_soon_threadsafe(lambda: safe_put(chunk))
+        except Exception:
+            # if queue.put_nowait raises because the queue is full, ignore/drop
+            pass
 
     stream = sd.InputStream(
         channels=AUDIO_CHANNELS,
@@ -57,14 +75,19 @@ async def capture_audio_loop():
     )
     stream.start()
 
-    while True:
-        await asyncio.sleep(0.01)
+    try:
+        while True:
+            await asyncio.sleep(0.01)
+    finally:
+        stream.stop()
+        stream.close()
 
 
 async def frame_handler(websocket):
     while True:
         try:
             frame, w, h = await frame_queue.get()
+            # send size as JSON, then raw jpeg bytes
             await websocket.send(json.dumps({"type": "size", "w": w, "h": h, "scale": 1}))
             await websocket.send(frame)
         except websockets.ConnectionClosed:
@@ -85,6 +108,10 @@ async def cursor_tracker():
         await asyncio.sleep(0.05)
         
 async def audio_handler(websocket):
+    """
+    Sends metadata first (JSON), then streams raw PCM int16 bytes as binary messages.
+    The client expects: first message JSON audio-info, following messages = raw PCM int16 LE interleaved.
+    """
     meta = {
         "type":"audio-info",
         "rate": AUDIO_SAMPLE_RATE,
@@ -95,10 +122,15 @@ async def audio_handler(websocket):
 
     while True:
         try:
-            data = await audio_queue.get()
+            data = await audio_queue.get()  # data is a numpy array dtype=int16, shape = (frames, channels) 
+            # ensure interleaved bytes: data.tobytes() yields little-endian raw interleaved PCM
             await websocket.send(data.tobytes())
         except websockets.ConnectionClosed:
             break
+        except Exception as e:
+            # avoid crashing the loop on unexpected issues
+            print("audio send error:", e)
+            await asyncio.sleep(0.01)
 
 
         
@@ -163,8 +195,10 @@ async def handler(websocket):
 
 
 async def main():
+    # start screen capture, cursor tracker, and audio capture
     asyncio.create_task(capture_screen_loop())
     asyncio.create_task(cursor_tracker())
+    asyncio.create_task(capture_audio_loop())   # <--- IMPORTANT: start the audio capture loop!
 
     async with websockets.serve(
         handler,
