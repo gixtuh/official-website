@@ -16,7 +16,7 @@ PASSWORD = "1234567890"
 
 # audio config
 AUDIO_SAMPLE_RATE = 48000
-AUDIO_CHANNELS = 2
+AUDIO_CHANNELS = 1
 AUDIO_CHUNK = 4096
 
 sct = mss.mss()
@@ -24,8 +24,6 @@ held_keys = set()
 clients_frames = set()
 frame_queue = asyncio.Queue(maxsize=1)
 audio_queue = asyncio.Queue(maxsize=32)
-
-# ---------------- SCREEN ---------------- #
 async def capture_screen_loop():
     monitor = sct.monitors[0]
     while True:
@@ -41,10 +39,7 @@ async def capture_screen_loop():
             except: pass
         await frame_queue.put((frame_data, img.width, img.height))
         await asyncio.sleep(1 / FPS)
-
-# ---------------- AUDIO ---------------- #
 def audio_thread(queue):
-    # pick first loopback device
     devices = sc.all_microphones(include_loopback=True)
     loopback_device = None
     for d in devices:
@@ -58,7 +53,6 @@ def audio_thread(queue):
 
     print("Using loopback device:", loopback_device.name)
 
-    # recorder inside thread
     try:
         with loopback_device.recorder(samplerate=AUDIO_SAMPLE_RATE, channels=AUDIO_CHANNELS) as rec:
             while True:
@@ -75,8 +69,6 @@ async def capture_audio_loop():
     threading.Thread(target=audio_thread, args=(audio_queue,), daemon=True).start()
     while True:
         await asyncio.sleep(1)  # keep alive
-
-# ---------------- HANDLERS ---------------- #
 async def frame_handler(websocket):
     while True:
         try:
@@ -163,8 +155,6 @@ async def input_handler(websocket):
                     await async_type(txt)
         except Exception as e:
             print("input handler error:", e)
-
-# ---------------- WEBSOCKET ---------------- #
 async def handler(websocket):
     path_full = websocket.request.path
     parsed = urlparse(path_full)
@@ -186,8 +176,6 @@ async def handler(websocket):
             await frame_handler(websocket)
         finally:
             clients_frames.discard(websocket)
-
-# ---------------- MAIN ---------------- #
 async def main():
     asyncio.create_task(capture_screen_loop())
     asyncio.create_task(cursor_tracker())
