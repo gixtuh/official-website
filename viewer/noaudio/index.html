@@ -80,14 +80,29 @@
         canvas.addEventListener("mousedown", e => {
             if (document.activeElement === typeBox) return;
             const pos = getRealMousePos(e); if(!pos) return;
-            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"down"}));
+            
+            let btn = null;
+            if (e.button === 0) btn = "left";
+            if (e.button === 2) btn = "right";
+            if (!btn) return;
+            
+            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:btn, state:"down"}));
         });
-
+        
         canvas.addEventListener("mouseup", e => {
             if (document.activeElement === typeBox) return;
             const pos = getRealMousePos(e); if(!pos) return;
-            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:"left", state:"up"}));
+            
+            let btn = null;
+            if (e.button === 0) btn = "left";
+            if (e.button === 2) btn = "right";
+            if (!btn) return;
+            
+            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:btn, state:"up"}));
         });
+        
+        
+        canvas.addEventListener("contextmenu", e => e.preventDefault());
 
         const img = new Image();
         wsFrames.onmessage = evt => {
@@ -137,6 +152,7 @@
         sendBtn.addEventListener("click", sendType);
 
         document.addEventListener("keydown", e => {
+            e.preventDefault();
             if (document.activeElement === typeBox) return;
             wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"}));
         });
