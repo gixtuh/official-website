@@ -1,89 +1,139 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>remote controller</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        canvas { display: block; width: 100vw; height: 100vh; }
-        #cursor { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; pointer-events: none; background: rgba(255,255,255,0.4); z-index: 9999; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #cursor {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 9999;
+        }
+
         #typeBox {
-            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-            width: 60vw; padding: 8px; border-radius: 6px; border: none;
-            background: rgba(255,255,255,0.18); color: white; outline: none; font-size: 14px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60vw;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            outline: none;
+            font-size: 14px;
         }
+
         #sendText {
-            position: absolute; bottom: 10px; right: calc(20vw - 10px);
-            padding: 8px 12px; border-radius: 6px; border: none;
-            background: #33aa33; cursor: pointer; color: black; font-weight: bold;
+            position: absolute;
+            bottom: 10px;
+            right: calc(20vw - 10px);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            background: #33aa33;
+            cursor: pointer;
+            color: black;
+            font-weight: bold;
         }
-        #sendText:hover { background: #44cc44; }
+
+        #sendText:hover {
+            background: #44cc44;
+        }
     </style>
 </head>
+
 <body>
     <canvas id="screen"></canvas>
     <div id="cursor"></div>
     <input id="typeBox" placeholder="fast type to vnc">
     <button id="sendText">SEND</button>
-    
+
     <script>
         function getParam(name) {
             const url = new URL(window.location.href);
             return url.searchParams.get(name);
         }
-        
+
         let baseURL = getParam("ws");
-        let password = getParam("passwd");
-        
-        if (!baseURL) {
-            baseURL = prompt("enter control websocket here");
+        let password = atob(getParam("passwd"));
+        let missing = false;
+        if (!baseURL || !password) {
+            missing = true;
         }
-        if (!password) {
-            password = prompt("enter password here");
+        if (missing) {
+            if (!baseURL) {
+                baseURL = prompt("enter control websocket here");
+            }
+            if (!password) {
+                password = prompt("enter password here");
+            }
+            if (confirm("do you want to store the data in a search query?")) {
+                history.pushState({}, "", window.location.pathname + `/?ws=${baseURL}&passwd=${btoa(password)}`)
+            }
         }
         const wsFrames = new WebSocket(baseURL, password);
-        const wsInput  = new WebSocket(baseURL + "/input", password);
-        
+        const wsInput = new WebSocket(baseURL + "/input", password);
+
         wsFrames.binaryType = "arraybuffer";
-        
+
         const canvas = document.getElementById("screen");
         const ctx = canvas.getContext("2d");
         const cursor = document.getElementById("cursor");
         let realW = 1, realH = 1;
-        let drawRect = {x:0, y:0, w:0, h:0};
+        let drawRect = { x: 0, y: 0, w: 0, h: 0 };
         /* ------------------ AUDIO RECEIVER ------------------ */
-        
+
         let wsAudio = new WebSocket(baseURL + "/audio", password);
         wsAudio.binaryType = "arraybuffer";
-        
+
         let sampleRate = 48000;  // default
         let channels = 1;
         let queueTime = 0;
         let started = false;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         queueTime = audioCtx.currentTime;
-        
+
         wsAudio.onmessage = async (evt) => {
             if (!(evt.data instanceof ArrayBuffer)) return;
-            
+
             // Resume context on first chunk
             if (audioCtx.state === "suspended") await audioCtx.resume();
-            
+
             const pcm = new Int16Array(evt.data);
             const float32 = new Float32Array(pcm.length);
             for (let i = 0; i < pcm.length; i++) float32[i] = pcm[i] / 32768;
-            
+
             const buffer = audioCtx.createBuffer(1, float32.length, sampleRate);
             buffer.getChannelData(0).set(float32);
-            
+
             const src = audioCtx.createBufferSource();
             src.buffer = buffer;
             src.connect(audioCtx.destination);
-            
+
             src.start(queueTime);
             queueTime += buffer.duration;
         };
-        
+
         let clicked = false
         window.addEventListener("click", () => {
             if (!clicked) {
@@ -94,19 +144,19 @@
                 clicked = true;
             }
         });
-        
-        function getRealMousePos(e){
+
+        function getRealMousePos(e) {
             const mx = e.clientX, my = e.clientY;
-            if(mx < drawRect.x || mx > drawRect.x + drawRect.w) return null;
-            if(my < drawRect.y || my > drawRect.y + drawRect.h) return null;
+            if (mx < drawRect.x || mx > drawRect.x + drawRect.w) return null;
+            if (my < drawRect.y || my > drawRect.y + drawRect.h) return null;
             return {
                 x: (mx - drawRect.x) * (realW / drawRect.w),
                 y: (my - drawRect.y) * (realH / drawRect.h)
             };
         }
-        
+
         let lastMousePos = null;
-        
+
         setInterval(() => {
             if (lastMousePos) {
                 wsInput.send(JSON.stringify({
@@ -118,61 +168,61 @@
                 lastMousePos = null;
             }
         }, 300);
-        
+
         canvas.addEventListener("mousemove", e => {
             const pos = getRealMousePos(e);
-            if(!pos) return;
+            if (!pos) return;
             lastMousePos = pos;
         });
-        
+
         canvas.addEventListener("mousedown", e => {
             if (document.activeElement === typeBox) return;
-            const pos = getRealMousePos(e); if(!pos) return;
-            
+            const pos = getRealMousePos(e); if (!pos) return;
+
             let btn = null;
             if (e.button === 0) btn = "left";
             if (e.button === 2) btn = "right";
             if (!btn) return;
-            
-            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:btn, state:"down"}));
+
+            wsInput.send(JSON.stringify({ type: "mouse", x: pos.x, y: pos.y, button: btn, state: "down" }));
         });
-        
+
         canvas.addEventListener("mouseup", e => {
             if (document.activeElement === typeBox) return;
-            const pos = getRealMousePos(e); if(!pos) return;
-            
+            const pos = getRealMousePos(e); if (!pos) return;
+
             let btn = null;
             if (e.button === 0) btn = "left";
             if (e.button === 2) btn = "right";
             if (!btn) return;
-            
-            wsInput.send(JSON.stringify({type:"mouse", x:pos.x, y:pos.y, button:btn, state:"up"}));
+
+            wsInput.send(JSON.stringify({ type: "mouse", x: pos.x, y: pos.y, button: btn, state: "up" }));
         });
-        
-        
+
+
         canvas.addEventListener("contextmenu", e => e.preventDefault());
-        
-        
+
+
         const img = new Image();
         wsFrames.onmessage = evt => {
             if (typeof evt.data === "string") {
                 const data = JSON.parse(evt.data);
-                
-                if (data.type === "size") { 
+
+                if (data.type === "size") {
                     realW = data.w; realH = data.h;
                 }
-                
+
                 if (data.type === "cursor") {
                     const cx = drawRect.x + (data.x * (drawRect.w / realW));
                     const cy = drawRect.y + (data.y * (drawRect.h / realH));
-                    
+
                     cursor.style.left = cx + "px";
-                    cursor.style.top  = cy + "px";
+                    cursor.style.top = cy + "px";
                 }
-                
+
                 return;
             }
-            
+
             const blob = new Blob([evt.data], { type: "image/jpeg" });
             const url = URL.createObjectURL(blob);
             img.src = url;
@@ -181,14 +231,14 @@
                 canvas.width = cw; canvas.height = ch;
                 const scale = Math.min(cw / realW, ch / realH);
                 const w = realW * scale, h = realH * scale, x = (cw - w) / 2, y = (ch - h) / 2;
-                drawRect = {x, y, w, h};
+                drawRect = { x, y, w, h };
                 ctx.drawImage(img, x, y, w, h);
                 URL.revokeObjectURL(url);
             };
         };
-        const typeBox  = document.getElementById("typeBox");
-        const sendBtn  = document.getElementById("sendText");
-        
+        const typeBox = document.getElementById("typeBox");
+        const sendBtn = document.getElementById("sendText");
+
         function sendType() {
             if (typeBox.value.trim() !== "") {
                 wsInput.send(JSON.stringify({
@@ -198,8 +248,8 @@
                 typeBox.value = "";
             }
         }
-        
-        
+
+
         typeBox.addEventListener("keydown", (e) => {
             e.stopPropagation();
             if (e.key === "Enter") {
@@ -207,17 +257,17 @@
                 sendType();
             }
         });
-        
+
         sendBtn.addEventListener("click", sendType);
-        
+
         document.addEventListener("keydown", e => {
             e.preventDefault();
             if (document.activeElement === typeBox) return;
-            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"down"}));
+            wsInput.send(JSON.stringify({ type: "keyboard", key: e.key, action: "down" }));
         });
         document.addEventListener("keyup", e => {
             if (document.activeElement === typeBox) return;
-            wsInput.send(JSON.stringify({type:"keyboard", key:e.key, action:"up"}));
+            wsInput.send(JSON.stringify({ type: "keyboard", key: e.key, action: "up" }));
         });
         document.addEventListener("click", () => {
             if (audioCtx && audioCtx.state === "suspended") {
@@ -229,9 +279,10 @@
                 audioCtx.resume();
             }
         });
-        
-        
-        
+
+
+
     </script>
 </body>
+
 </html>
