@@ -1,5 +1,5 @@
 <script>
-    if (prompt("would you like to have your vnc client have audio?")) {
+    if (confirm("would you like to have your vnc client have audio?")) {
         window.location.href = window.location.href + "/normal"
     } else {
         window.location.href = window.location.href + "/noaudio"
