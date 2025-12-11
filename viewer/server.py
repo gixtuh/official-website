@@ -8,7 +8,7 @@ from urllib.parse import urlparse, parse_qs
 import soundcard as sc
 import threading
 
-# pip install pyautogui mss pillow websockets numpy soundcard
+# pip install pyautogui mss Pillow websockets numpy soundcard
 
 FPS = 30
 JPEG_QUALITY = 25
@@ -40,6 +40,7 @@ async def capture_screen_loop():
         await frame_queue.put((frame_data, img.width, img.height))
         await asyncio.sleep(1 / FPS)
 def audio_thread(queue):
+    # pick first loopback device
     devices = sc.all_microphones(include_loopback=True)
     loopback_device = None
     for d in devices:
@@ -53,6 +54,7 @@ def audio_thread(queue):
 
     print("Using loopback device:", loopback_device.name)
 
+    # recorder inside thread
     try:
         with loopback_device.recorder(samplerate=AUDIO_SAMPLE_RATE, channels=AUDIO_CHANNELS) as rec:
             while True:
@@ -149,10 +151,21 @@ async def input_handler(websocket):
                     pyautogui.keyUp(key_to_press); held_keys.discard(key_to_press)
                 elif action=="press":
                     pyautogui.press(key_to_press)
+
             elif data.get("type") == "type":
                 txt = data.get("text", "")
                 if txt:
                     await async_type(txt)
+            elif data.get("type") == "clipboard":
+                if data.get("action") == "get":
+                    import pyperclip
+                    clip_content = pyperclip.paste()
+                    await websocket.send(json.dumps({"type":"clipboard","text":clip_content}))
+                elif data.get("action") == "set":
+                    import pyperclip
+                    text = data.get("text", "")
+                    pyperclip.copy(text)
+
         except Exception as e:
             print("input handler error:", e)
 async def handler(websocket):
@@ -176,6 +189,7 @@ async def handler(websocket):
             await frame_handler(websocket)
         finally:
             clients_frames.discard(websocket)
+
 async def main():
     asyncio.create_task(capture_screen_loop())
     asyncio.create_task(cursor_tracker())
@@ -187,6 +201,11 @@ async def main():
         print("live")
         print("use ws://localhost:8765 in https://gixtuh.vercel.app/viewer to use VNC")
         print("HOSTING THE WEBSOCKET TO THE PUBLIC IS NOT RECOMMENDED")
+        print()
+        print()
+        print("if you see \"SoundcardRuntimeWarning: data discontinuity in recording\" dont worry your audio is still running it's just the \"soundcard\" module yelling about some audio data loss which isnt really that audible")
+        print()
+        print()
         await asyncio.Future()
 
 if __name__ == "__main__":
