@@ -39,15 +39,27 @@
             const url = new URL(window.location.href);
             return url.searchParams.get(name);
         }
-        
+
         let baseURL = getParam("ws");
-        let password = getParam("passwd");
-        
-        if (!baseURL) {
-            baseURL = prompt("enter control websocket here");
+        let rawPass = getParam("passwd");
+        let password = rawPass ? atob(rawPass) : "";
+        let missing = false;
+
+        if (!baseURL || password === "") {
+            missing = true;
         }
-        if (!password) {
-            password = prompt("enter password here");
+
+        if (missing) {
+            if (!baseURL) {
+                baseURL = prompt("enter control websocket here");
+            }
+            if (!password) {
+                password = prompt("enter password here");
+            }
+
+            if (confirm("do you want to store the data in a search query?")) {
+                history.pushState({}, "", window.location.pathname + `/?ws=${baseURL}&passwd=${btoa(password)}`);
+            }
         }
         const wsFrames = new WebSocket(baseURL, password);
         const wsInput  = new WebSocket(baseURL + "/input", password);
