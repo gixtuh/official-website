@@ -3,3 +3,5 @@ curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmo
 echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(. /etc/os-release && printf $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 sudo apt update
 sudo apt install -y cloudflare-warp
+warp-cli registration new
+warp-cli connect
